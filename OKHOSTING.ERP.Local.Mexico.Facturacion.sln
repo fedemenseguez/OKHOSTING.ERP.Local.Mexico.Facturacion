@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OKHOSTING.ERP.Local.Mexico.Facturacion", "OKHOSTING.ERP.Local.Mexico.Facturacion\OKHOSTING.ERP.Local.Mexico.Facturacion.csproj", "{73AAD4A8-3746-40BC-9429-E67855F38EFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OKHOSTING.Tools", "..\OKHOSTING.Tools\OKHOSTING.Tools.csproj", "{FC1B2D37-6A08-4FCE-AAF7-73512262A9D1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{73AAD4A8-3746-40BC-9429-E67855F38EFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73AAD4A8-3746-40BC-9429-E67855F38EFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73AAD4A8-3746-40BC-9429-E67855F38EFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73AAD4A8-3746-40BC-9429-E67855F38EFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC1B2D37-6A08-4FCE-AAF7-73512262A9D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC1B2D37-6A08-4FCE-AAF7-73512262A9D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC1B2D37-6A08-4FCE-AAF7-73512262A9D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC1B2D37-6A08-4FCE-AAF7-73512262A9D1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

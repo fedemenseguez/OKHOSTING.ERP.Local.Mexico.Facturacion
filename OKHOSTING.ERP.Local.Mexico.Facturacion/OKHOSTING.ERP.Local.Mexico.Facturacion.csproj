@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{73AAD4A8-3746-40BC-9429-E67855F38EFE}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>OKHOSTING.ERP.Local.Mexico.Facturacion</RootNamespace>
+    <AssemblyName>OKHOSTING.ERP.Local.Mexico.Facturacion</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Interop.SHDocVw">
+      <HintPath>..\packages\WatiN.2.1.0\lib\net40\Interop.SHDocVw.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.mshtml, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <Private>True</Private>
+      <HintPath>..\packages\WatiN.2.1.0\lib\net40\Microsoft.mshtml.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WatiN.Core">
+      <HintPath>..\packages\WatiN.2.1.0\lib\net40\WatiN.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Concepto.cs" />
+    <Compile Include="Configuracion.cs" />
+    <Compile Include="Descargador.cs" />
+    <Compile Include="Domicilio.cs" />
+    <Compile Include="EmailFactura.cs" />
+    <Compile Include="Empresa.cs" />
+    <Compile Include="Factura.cs" />
+    <Compile Include="Impuesto.cs" />
+    <Compile Include="NumberToText.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Retencion.cs" />
+    <Compile Include="Service References\Timbrado.FormasDigitales\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
+    <Compile Include="TipoDeComprobante.cs" />
+    <Compile Include="Traslado.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+    <None Include="Service References\Timbrado.FormasDigitales\OKHOSTING.ERP.Local.Mexico.Facturacion.Timbrado.FormasDigitales.AutenticarResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\Timbrado.FormasDigitales\OKHOSTING.ERP.Local.Mexico.Facturacion.Timbrado.FormasDigitales.Cancelacion_1Response.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\Timbrado.FormasDigitales\OKHOSTING.ERP.Local.Mexico.Facturacion.Timbrado.FormasDigitales.Cancelacion_2Response.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\Timbrado.FormasDigitales\OKHOSTING.ERP.Local.Mexico.Facturacion.Timbrado.FormasDigitales.TimbrarResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\Timbrado.FormasDigitales\OKHOSTING.ERP.Local.Mexico.Facturacion.Timbrado.FormasDigitales.wsAutenticarResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\Timbrado.FormasDigitales\OKHOSTING.ERP.Local.Mexico.Facturacion.Timbrado.FormasDigitales.wsCancelacionResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\Timbrado.FormasDigitales\OKHOSTING.ERP.Local.Mexico.Facturacion.Timbrado.FormasDigitales.wsTimbradoResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\Timbrado.FormasDigitales\WSForcogsaService.wsdl" />
+    <None Include="Service References\Timbrado.FormasDigitales\WSForcogsaService.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\Timbrado.FormasDigitales\WSForcogsaService1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\Timbrado.FormasDigitales\WSForcogsaService2.xsd">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\Timbrado.FormasDigitales\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\Timbrado.FormasDigitales\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\Timbrado.FormasDigitales\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\Timbrado.FormasDigitales\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\OKHOSTING.Tools\OKHOSTING.Tools.csproj">
+      <Project>{fc1b2d37-6a08-4fce-aaf7-73512262a9d1}</Project>
+      <Name>OKHOSTING.Tools</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
