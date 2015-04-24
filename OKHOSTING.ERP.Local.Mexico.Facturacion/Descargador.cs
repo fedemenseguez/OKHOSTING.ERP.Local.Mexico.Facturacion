@@ -50,6 +50,16 @@ namespace OKHOSTING.ERP.Local.Mexico.Facturacion
         /// </summary>
         public readonly TipoBusqueda Busqueda;
 
+        public Descargador(string rfc, string contrasena, string carpeta, DateTime fechaDesde, DateTime fechaHasta, TipoBusqueda busqueda)
+        {
+            RFC = rfc;
+            Contrasena = contrasena;
+            Carpeta = carpeta;
+            FechaDesde = fechaDesde;
+            FechaHasta = fechaHasta;
+            Busqueda = busqueda;
+        }
+
         public void Descargar()
         {
             Browser = new IE();
