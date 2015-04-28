@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EPPlus">
+      <HintPath>..\packages\EPPlus.4.0.4\lib\net20\EPPlus.dll</HintPath>
+    </Reference>
     <Reference Include="Interop.SHDocVw">
       <HintPath>..\packages\WatiN.2.1.0\lib\net40\Interop.SHDocVw.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -59,6 +62,7 @@
     <Compile Include="Domicilio.cs" />
     <Compile Include="EmailFactura.cs" />
     <Compile Include="Empresa.cs" />
+    <Compile Include="Exportador.cs" />
     <Compile Include="Factura.cs" />
     <Compile Include="Impuesto.cs" />
     <Compile Include="NumberToText.cs" />
