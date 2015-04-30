@@ -1,22 +1,30 @@
 ﻿using System;
+using System.IO;
 using System.Xml;
+using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OfficeOpenXml;
-using System.IO;
 
 namespace OKHOSTING.ERP.Local.Mexico.Facturacion
 {
 	/// <summary>
-	/// Exporta una serie de facturas a Excel
+	/// Exporta una serie de comprobanteuras a Excel
 	/// </summary>
-	public class Exportador
+	public static class Exportador
 	{
 		public static void ExportarExcel(IEnumerable<XmlDocument> facturas, string rutaArchivo)
 		{
-			ExcelPackage excel = new ExcelPackage(new FileInfo(rutaArchivo));
+			var fileInfo = new FileInfo(rutaArchivo);
+
+			if (fileInfo.Exists)
+			{
+				fileInfo.Delete();
+			}
+
+			ExcelPackage excel = new ExcelPackage(fileInfo);
 			var hoja = excel.Workbook.Worksheets.Add("Facturas");
 			
 			//agregar headers
@@ -31,49 +39,64 @@ namespace OKHOSTING.ERP.Local.Mexico.Facturacion
 			hoja.Cells[1, 8].Value = "Razon Social Receptor";
 
 			hoja.Cells[1, 9].Value = "IVA 0% acreditado";
-			hoja.Cells[1, 9].Value = "IVA 16% acreditado";
-			hoja.Cells[1, 10].Value = "ISR acreditado";
-			hoja.Cells[1, 11].Value = "IEPS acreditado";
+			hoja.Cells[1, 10].Value = "IVA 16% acreditado";
+			hoja.Cells[1, 11].Value = "ISR acreditado";
+			hoja.Cells[1, 12].Value = "IEPS acreditado";
 
-			hoja.Cells[1, 12].Value = "IVA 0% retenido";
-			hoja.Cells[1, 12].Value = "IVA 16% retenido";
-			hoja.Cells[1, 13].Value = "ISR retenido";
-			hoja.Cells[1, 14].Value = "IEPS retenido";
+			hoja.Cells[1, 13].Value = "IVA 0% retenido";
+			hoja.Cells[1, 14].Value = "IVA 16% retenido";
+			hoja.Cells[1, 15].Value = "ISR retenido";
+			hoja.Cells[1, 16].Value = "IEPS retenido";
 			
-			hoja.Cells[1, 15].Value = "Subtotal";
-			hoja.Cells[1, 16].Value = "Descuento";
-			hoja.Cells[1, 17].Value = "Total";
+			hoja.Cells[1, 17].Value = "Subtotal";
+			hoja.Cells[1, 18].Value = "Descuento";
+			hoja.Cells[1, 19].Value = "Total";
 
 			//fila
-			int i = 2;
+			int fila = 2;
 
 			foreach (XmlDocument fact in facturas)
 			{
-				hoja.Cells[i, 1].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital@UUID"].Value;
-				hoja.Cells[i, 2].Value = fact.DocumentElement["/cfdi:Comprobante@fecha"].Value;
-				hoja.Cells[i, 3].Value = fact.DocumentElement["/cfdi:Comprobante@formaDePago"].Value;
-				hoja.Cells[i, 4].Value = fact.DocumentElement["/cfdi:Comprobante@metodoDePago"].Value;
+				XmlNamespaceManager nsmgr = new XmlNamespaceManager(fact.NameTable);
+				nsmgr.AddNamespace("cfdi", "http://www.sat.gob.mx/cfd/3");
+				nsmgr.AddNamespace("tfd", "http://www.sat.gob.mx/TimbreFiscalDigital http://www.sat.gob.mx/TimbreFiscalDigital/TimbreFiscalDigital.xsd");
+
+				var comprobante = fact.DocumentElement;
+
+				//buscar folio
+				foreach (XmlNode nodo in comprobante.SelectSingleNode("cfdi:Complemento", nsmgr).ChildNodes)
+				{
+					if (nodo.Name == "tfd:TimbreFiscalDigital")
+					{
+						hoja.Cells[fila, 1].Value = nodo.Attributes["UUID"].Value;
+						break;
+					}
+				}
+
+				hoja.Cells[fila, 2].Value = comprobante.SelectSingleNode("@fecha", nsmgr).Value;
+				hoja.Cells[fila, 3].Value = comprobante.SelectSingleNode("@formaDePago", nsmgr).Value;
+				hoja.Cells[fila, 4].Value = comprobante.SelectSingleNode("@metodoDePago", nsmgr).Value;
 				
-				hoja.Cells[i, 5].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Emisor@rfc"].Value;
-				hoja.Cells[i, 6].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Emisor@nomber"].Value;
-				hoja.Cells[i, 7].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Receptor@rfc"].Value;
-				hoja.Cells[i, 8].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Receptor@nombre"].Value;
+				hoja.Cells[fila, 5].Value = comprobante.SelectSingleNode("cfdi:Emisor/@rfc", nsmgr).Value;
+				hoja.Cells[fila, 6].Value = comprobante.SelectSingleNode("cfdi:Emisor/@nombre", nsmgr).Value;
+				hoja.Cells[fila, 7].Value = comprobante.SelectSingleNode("cfdi:Receptor/@rfc", nsmgr).Value;
+				hoja.Cells[fila, 8].Value = comprobante.SelectSingleNode("cfdi:Receptor/@nombre", nsmgr).Value;
 
-				if (fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto=IVA and @tasa=0]"] != null) hoja.Cells[i, 9].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto=IVA and @tasa=0]"].Value;
-				if (fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto=IVA and @tasa=16]"] != null) hoja.Cells[i, 10].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto=IVA and @tasa=16]"].Value;
-				if (fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto=ISR]"] != null) hoja.Cells[i, 11].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto=ISR]"].Value;
-				if (fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto=IEPS]"] != null) hoja.Cells[i, 12].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto=IEPS]"].Value;
+				if (comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto='IVA' and @tasa='0.00']/@importe", nsmgr) != null) hoja.Cells[fila, 9].Value = comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto='IVA' and @tasa='0.00']/@importe", nsmgr).Value;
+				if (comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto='IVA' and @tasa='16.00']/@importe", nsmgr) != null) hoja.Cells[fila, 10].Value = comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto='IVA' and @tasa='16.00']/@importe", nsmgr).Value;
+				if (comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto='ISR']/@importe", nsmgr) != null) hoja.Cells[fila, 11].Value = comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto='ISR']/@importe", nsmgr).Value;
+				if (comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto='IEPS']/@importe", nsmgr) != null) hoja.Cells[fila, 12].Value = comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Traslados/cfdi:Traslado[@impuesto='IEPS']/@importe", nsmgr).Value;
 
-				if (fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto=IVA and @tasa=0]"] != null) hoja.Cells[i, 13].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto=IVA and @tasa=0]"].Value;
-				if (fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto=IVA and @tasa=16]"] != null) hoja.Cells[i, 14].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto=IVA and @tasa=16]"].Value;
-				if (fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto=ISR]"] != null) hoja.Cells[i, 15].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto=ISR]"].Value;
-				if (fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto=IEPS]"] != null) hoja.Cells[i, 16].Value = fact.DocumentElement["/cfdi:Comprobante/cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto=IEPS]"].Value;
-				
-				hoja.Cells[i, 15].Value = fact.DocumentElement["/cfdi:Comprobante@subTotal"].Value;
-				hoja.Cells[i, 16].Value = fact.DocumentElement["/cfdi:Comprobante@descuento"].Value;
-				hoja.Cells[i, 17].Value = fact.DocumentElement["/cfdi:Comprobante@total"].Value;
+				if (comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto='IVA' and @tasa='0.00']/@importe", nsmgr) != null) hoja.Cells[fila, 13].Value = comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto='IVA' and @tasa='0.00']/@importe", nsmgr).Value;
+				if (comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto='IVA' and @tasa='16.00']/@importe", nsmgr) != null) hoja.Cells[fila, 14].Value = comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto='IVA' and @tasa='16.00']/@importe", nsmgr).Value;
+				if (comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto='ISR']/@importe", nsmgr) != null) hoja.Cells[fila, 15].Value = comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto='ISR']/@importe", nsmgr).Value;
+				if (comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto='IEPS']/@importe", nsmgr) != null) hoja.Cells[fila, 16].Value = comprobante.SelectSingleNode("cfdi:Impuestos/cfdi:Retenciones/cfdi:Retencion[@impuesto='IEPS']/@importe", nsmgr).Value;
 
-				i++;
+				hoja.Cells[fila, 17].Value = comprobante.SelectSingleNode("@subTotal", nsmgr).Value;
+				if (comprobante.SelectSingleNode("@descuento", nsmgr) != null) hoja.Cells[fila, 18].Value = comprobante.SelectSingleNode("@descuento", nsmgr).Value;
+				hoja.Cells[fila, 19].Value = comprobante.SelectSingleNode("@total", nsmgr).Value;
+
+				fila++;
 			}
 
 			excel.Save();

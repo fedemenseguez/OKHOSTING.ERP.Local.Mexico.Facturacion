@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OKHOSTING.Tools;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,10 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using WatiN.Core;
 using WatiN.Core.DialogHandlers;
+using WatiN.Core.Native.Windows;
 
 namespace OKHOSTING.ERP.Local.Mexico.Facturacion
 {
-    public class Descargador
+    public static class Descargador
     {
         public enum TipoBusqueda
         {
@@ -18,159 +20,167 @@ namespace OKHOSTING.ERP.Local.Mexico.Facturacion
             Recibidas,
         }
 
-        protected IE Browser;
-
-        /// <summary>
-        /// RFC para entrar al SAT
-        /// </summary>
-        public readonly string RFC;
-
-        /// <summary>
-        /// Contraseña para entrar al SAT
-        /// </summary>
-        public readonly string Contrasena;
-
-        /// <summary>
-        /// Carpeta donde se guardarán las facturas
-        /// </summary>
-        public readonly string Carpeta;
-
-        /// <summary>
-        /// Desde que fecha descargar (solo se usan mes y año, el dia se ignora)
-        /// </summary>
-        public readonly DateTime FechaDesde;
-
-        /// <summary>
-        /// Hasta que fecha descargar (solo se usan mes y año, el dia se ignora)
-        /// </summary>
-        public readonly DateTime FechaHasta;
-
-        /// <summary>
-        /// Define si descargar facturas emitidas o recibidas
-        /// </summary>
-        public readonly TipoBusqueda Busqueda;
-
-        public Descargador(string rfc, string contrasena, string carpeta, DateTime fechaDesde, DateTime fechaHasta, TipoBusqueda busqueda)
+		public static void Descargar(string rfc, string contrasena, string carpeta, DateTime fechaDesde, DateTime fechaHasta, TipoBusqueda busqueda)
         {
-            RFC = rfc;
-            Contrasena = contrasena;
-            Carpeta = carpeta;
-            FechaDesde = fechaDesde;
-            FechaHasta = fechaHasta;
-            Busqueda = busqueda;
-        }
-
-        public void Descargar()
-        {
-            Browser = new IE();
+            IE browser = new IE();
 
             //limpiar sesion y login 
-            Browser.ClearCookies();
+            browser.ClearCookies();
             Thread.Sleep(1000);
 
             //java login
-            Browser.GoTo("https://portalcfdi.facturaelectronica.sat.gob.mx");
-            Browser.WaitForComplete();
+            browser.GoTo("https://portalcfdi.facturaelectronica.sat.gob.mx");
+            browser.WaitForComplete();
 
             //entrar por contraseña
-            Browser.GoTo("https://cfdiau.sat.gob.mx/nidp/app/login?id=SATUPCFDiCon&sid=0&option=credential&sid=0");
-            Browser.TextField(Find.ByName("Ecom_User_ID")).AppendText(RFC);
-            Browser.TextField(Find.ByName("Ecom_Password")).AppendText(Contrasena);
-            Browser.Button("submit").Click();
+            browser.GoTo("https://cfdiau.sat.gob.mx/nidp/app/login?id=SATUPCFDiCon&sid=0&option=credential&sid=0");
+			browser.TextField(Find.ByName("Ecom_User_ID")).AppendText(rfc);
+			browser.TextField(Find.ByName("Ecom_Password")).AppendText(contrasena);
+            browser.Button("submit").Click();
+
+            browser.WaitForComplete();
+
+			//ver si nos pudimos loggear
+			if (browser.ContainsText("Login failed, please try again") || browser.ContainsText("La entrada no se ha completado"))
+			{
+				browser.Close();
+				throw new Exception("Los datos de acceso son incorrectos para: " + rfc);
+			}
 
             //seleccionar emitidas o recibidas
-            Browser.WaitForComplete();
-            if (Busqueda == TipoBusqueda.Emitidas)
+			if (busqueda == TipoBusqueda.Emitidas)
             {
-                Browser.RadioButton("ctl00_MainContent_RdoTipoBusquedaEmisor").Click();
+                browser.RadioButton("ctl00_MainContent_RdoTipoBusquedaEmisor").Click();
             }
             else
             {
-                Browser.RadioButton("ctl00_MainContent_RdoTipoBusquedaReceptor").Click();
+                browser.RadioButton("ctl00_MainContent_RdoTipoBusquedaReceptor").Click();
             }
 
-            Browser.Button("ctl00_MainContent_BtnBusqueda").Click();
+            browser.Button("ctl00_MainContent_BtnBusqueda").Click();
+
+			Log.Write("Tipo busqueda", Log.Information);
 
             //facturas emitidas
-            if (Busqueda == TipoBusqueda.Emitidas)
+			if (busqueda == TipoBusqueda.Emitidas)
             {
-                Browser.WaitUntilContainsText("Fecha Inicial de Emisión");
-                Browser.RadioButton("ctl00_MainContent_RdoFechas").Click();
+                browser.WaitUntilContainsText("Fecha Inicial de Emisión");
+                browser.RadioButton("ctl00_MainContent_RdoFechas").Click();
+				Thread.Sleep(1000);
 
                 //fecha desde
-                Browser.TextField("ctl00_MainContent_CldFechaInicial2_Calendario_text").Value = FechaDesde.ToString("dd/MM/yyyy");
+                browser.TextField("ctl00_MainContent_CldFechaInicial2_Calendario_text").Value = fechaDesde.ToString("dd/MM/yyyy");
                 //hasta
-                Browser.TextField("ctl00_MainContent_CldFechaFinal2_Calendario_text").Value = FechaHasta.ToString("dd/MM/yyyy");
+                browser.TextField("ctl00_MainContent_CldFechaFinal2_Calendario_text").Value = fechaHasta.ToString("dd/MM/yyyy");
+				Thread.Sleep(1000);
 
                 //buscar
-                Browser.Button("ctl00_MainContent_BtnBusqueda").Click();
+                browser.Button("ctl00_MainContent_BtnBusqueda").Click();
 
-                DescargarFacturasListadas();
+				Log.Write("Buscando", Log.Information);
+
+				DescargarFacturasListadas(browser, carpeta);
             }
             else
             {
-                DateTime mesActual = FechaDesde;
+                DateTime mesActual = fechaDesde;
 
-                while (mesActual < FechaHasta)
+                while (mesActual < fechaHasta)
                 {
-                    Browser.WaitUntilContainsText("Fecha de Emisión");
-                    Browser.RadioButton("ctl00_MainContent_RdoFechas").Click();
+                    browser.WaitUntilContainsText("Fecha de Emisión");
+                    browser.RadioButton("ctl00_MainContent_RdoFechas").Click();
+					Thread.Sleep(1000);
 
                     //seleccionar año adecuado
-                    Browser.SelectList("DdlAnio").SelectByValue(mesActual.Year.ToString());
-
+                    browser.SelectList("DdlAnio").SelectByValue(mesActual.Year.ToString());
                     //seleccionar mes adecuado
-                    Browser.SelectList("ctl00_MainContent_CldFecha_DdlMes").SelectByValue(mesActual.Month.ToString());
+                    browser.SelectList("ctl00_MainContent_CldFecha_DdlMes").SelectByValue(mesActual.Month.ToString());
+					//seleccionar dia adecuado
+					browser.SelectList("ctl00_MainContent_CldFecha_DdlDia").SelectByValue(mesActual.Day.ToString());
+					Thread.Sleep(1000);
 
                     //buscar
-                    Browser.Button("ctl00_MainContent_BtnBusqueda").Click();
+                    browser.Button("ctl00_MainContent_BtnBusqueda").Click();
 
-                    DescargarFacturasListadas();
+					Log.Write("Buscando", Log.Information);
+
+					DescargarFacturasListadas(browser, carpeta);
 
                     //pasar al siguiente mes
                     mesActual = mesActual.AddMonths(1);
                 }
             }
 
+			browser.Close();
         }
 
-        protected void DescargarFacturasListadas()
+        private static void DescargarFacturasListadas(IE browser, string carpeta)
         {
-            //paginacion
-            Thread.Sleep(2000);
-            Browser.WaitUntilContainsText("Acciones");
+			//esperar resultados
+			int intentos = 0;
+			
+			while (intentos < 20)
+			{
+				Log.Write("Intento " + intentos, Log.Information);
 
-            foreach (var link in Browser.Images.Where(img => img.Name == "BtnDescarga"))
+				//ya hay resultados
+				if (browser.Div("ctl00_MainContent_PnlResultados").Style.Display == "inline")
+				{
+					break;
+				}
+				
+				//no hay resultados
+				if (browser.Div("ctl00_MainContent_PnlNoResultados").Style.Display == "inline")
+				{
+					return;
+				}
+
+				intentos++;
+				Thread.Sleep(1000);
+			}
+
+			Log.Write("Descargando", Log.Information);
+
+            foreach (var link in browser.Images.Where(img => img.Name == "BtnDescarga"))
             {
-                string directory = Path.Combine(Carpeta, RFC, "Emitidas");
-
                 //obtener folio fiscal
                 string folio = link.Parent.Parent.NextSibling.Text;
-                string filename = String.Format("{0}.xml", folio);
+                string archivo = String.Format("{0}.xml", folio);
+				string rutaCompleta = Path.Combine(carpeta, archivo);
+				
+				//si ya esta descargada, no la brincamos
+				if (File.Exists(rutaCompleta))
+				{
+					continue;
+				}
 
                 //Creating the directory if it doesn't exists
-                if (!System.IO.Directory.Exists(directory))
+				if (!System.IO.Directory.Exists(carpeta))
                 {
-                    System.IO.Directory.CreateDirectory(directory);
+					System.IO.Directory.CreateDirectory(carpeta);
                 }
 
                 //download xml
                 link.Click();
-                FileDownloadHandler fileDownloadHandlerPdf = new FileDownloadHandler(Path.Combine(directory, filename));
-                Browser.AddDialogHandler(fileDownloadHandlerPdf);
 
-                try
-                {
-                    fileDownloadHandlerPdf.WaitUntilFileDownloadDialogIsHandled(30);
-                    fileDownloadHandlerPdf.WaitUntilDownloadCompleted(200);
-                }
-                catch
-                {
-                }
-                finally
-                {
-                    Browser.RemoveDialogHandler(fileDownloadHandlerPdf);
-                }
+				Log.Write("Click Descargando " + archivo, Log.Information);
+
+				
+				FileDownloadHandler fileDownloadHandler = new FileDownloadHandler(rutaCompleta);
+				browser.AddDialogHandler(fileDownloadHandler);
+
+				try
+				{
+					fileDownloadHandler.WaitUntilFileDownloadDialogIsHandled(30);
+					fileDownloadHandler.WaitUntilDownloadCompleted(200);
+				}
+				catch
+				{
+				}
+				finally
+				{
+					browser.RemoveDialogHandler(fileDownloadHandler);
+				}
             }
         }
     }
